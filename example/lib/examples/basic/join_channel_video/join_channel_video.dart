@@ -25,6 +25,7 @@ class _State extends State<JoinChannelVideo> {
   bool _isUseAndroidSurfaceView = false;
   ChannelProfileType _channelProfileType =
       ChannelProfileType.channelProfileLiveBroadcasting;
+  bool _isSwitchView = false;
 
   @override
   void initState() {
@@ -88,6 +89,7 @@ class _State extends State<JoinChannelVideo> {
     ));
 
     await _engine.enableVideo();
+    await _engine.startPreview();
   }
 
   Future<void> _joinChannel() async {
@@ -117,41 +119,86 @@ class _State extends State<JoinChannelVideo> {
   Widget build(BuildContext context) {
     return ExampleActionsWidget(
       displayContentBuilder: (context, isLayoutHorizontal) {
+        Widget view1 = Container();
+        Widget view2 = Container();
+
+        final ruid = (remoteUid.isEmpty) ? -1 : remoteUid.first;
+
+        print('ruid: $ruid, _isSwitchView: $_isSwitchView');
+
+        if (_isSwitchView) {
+          if (ruid != -1) {
+            view1 = AgoraVideoView(
+                controller: VideoViewController.remote(
+                  rtcEngine: _engine,
+                  canvas: VideoCanvas(uid: ruid),
+                  connection: RtcConnection(channelId: _controller.text),
+                  useFlutterTexture: _isUseFlutterTexture,
+                  useAndroidSurfaceView: _isUseAndroidSurfaceView,
+                ),
+              );
+          } 
+
+          view2 = AgoraVideoView(
+            controller: VideoViewController(
+              rtcEngine: _engine,
+              canvas: const VideoCanvas(uid: 0),
+              useFlutterTexture: _isUseFlutterTexture,
+              useAndroidSurfaceView: _isUseAndroidSurfaceView,
+            ),
+            onAgoraVideoViewCreated: (viewId) {},
+          );
+        } else {
+          view1 = AgoraVideoView(
+            controller: VideoViewController(
+              rtcEngine: _engine,
+              canvas: const VideoCanvas(uid: 0),
+              useFlutterTexture: _isUseFlutterTexture,
+              useAndroidSurfaceView: _isUseAndroidSurfaceView,
+            ),
+            onAgoraVideoViewCreated: (viewId) {},
+          );
+
+          if (ruid != -1) {
+            view2 = AgoraVideoView(
+                controller: VideoViewController.remote(
+                  rtcEngine: _engine,
+                  canvas: VideoCanvas(uid: ruid),
+                  connection: RtcConnection(channelId: _controller.text),
+                  useFlutterTexture: _isUseFlutterTexture,
+                  useAndroidSurfaceView: _isUseAndroidSurfaceView,
+                ),
+              );
+          } 
+        }
+
+        view1 = GestureDetector(
+          child: view1,
+          onTap: () {
+            setState(() {
+              _isSwitchView = !_isSwitchView;
+            });
+          },
+        );
+
+        view2 = GestureDetector(
+          child: view2,
+          onTap: () {
+            setState(() {
+              _isSwitchView = !_isSwitchView;
+            });
+          },
+        );
+
         return Stack(
           children: [
-            AgoraVideoView(
-              controller: VideoViewController(
-                rtcEngine: _engine,
-                canvas: const VideoCanvas(uid: 0),
-                useFlutterTexture: _isUseFlutterTexture,
-                useAndroidSurfaceView: _isUseAndroidSurfaceView,
-              ),
-              onAgoraVideoViewCreated: (viewId) {
-                _engine.startPreview();
-              },
-            ),
+            view1,
             Align(
               alignment: Alignment.topLeft,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: List.of(remoteUid.map(
-                    (e) => SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: AgoraVideoView(
-                        controller: VideoViewController.remote(
-                          rtcEngine: _engine,
-                          canvas: VideoCanvas(uid: e),
-                          connection:
-                              RtcConnection(channelId: _controller.text),
-                          useFlutterTexture: _isUseFlutterTexture,
-                          useAndroidSurfaceView: _isUseAndroidSurfaceView,
-                        ),
-                      ),
-                    ),
-                  )),
-                ),
+              child: SizedBox(
+                height: 200,
+                width: 200,
+                child: view2,
               ),
             )
           ],

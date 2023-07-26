@@ -209,10 +209,13 @@ mixin VideoViewControllerBaseMixin implements VideoViewControllerBase {
       return;
     }
 
-    await setupNativeViewInternal(nativeViewPtr);
-
     _isCreatedRender = true;
     _isDisposeRender = false;
+
+    await setupNativeViewInternal(nativeViewPtr);
+
+    // _isCreatedRender = true;
+    // _isDisposeRender = false;
   }
 
   Future<void> dePlatformRenderRef(int platformViewId) async {
