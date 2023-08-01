@@ -31,7 +31,7 @@ import 'package:agora_rtc_engine/src/impl/audio_device_manager_impl.dart'
     as audio_device_manager_impl;
 import 'package:agora_rtc_engine/src/impl/media_player_impl.dart'
     as media_player_impl;
-import 'package:agora_rtc_engine/src/impl/native_iris_api_engine_binding_delegate.dart';
+import 'package:agora_rtc_engine/src/impl/platform/io/native_iris_api_engine_binding_delegate.dart';
 import 'package:flutter/foundation.dart'
     show ChangeNotifier, defaultTargetPlatform;
 import 'package:flutter/services.dart' show MethodChannel;
@@ -225,7 +225,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   Future<void> _initializeInternal(RtcEngineContext context) async {
     _globalVideoViewController ??= GlobalVideoViewController(irisMethodChannel);
     await _globalVideoViewController!
-        .attachVideoFrameBufferManager(irisMethodChannel.getNativeHandle());
+        .attachVideoFrameBufferManager(irisMethodChannel.getApiEngineHandle());
 
     irisMethodChannel.addHotRestartListener(_hotRestartListener);
   }
@@ -317,7 +317,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     await _objectPool.clear();
 
     await _globalVideoViewController
-        ?.detachVideoFrameBufferManager(irisMethodChannel.getNativeHandle());
+        ?.detachVideoFrameBufferManager(irisMethodChannel.getApiEngineHandle());
     _globalVideoViewController = null;
 
     await irisMethodChannel.unregisterEventHandlers(_rtcEngineImplScopedKey);
@@ -397,30 +397,30 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     }
   }
 
-  @override
-  Future<void> sendStreamMessage(
-      {required int streamId,
-      required Uint8List data,
-      required int length}) async {
-    const apiType = 'RtcEngine_sendStreamMessage';
-    final dataPtr = uint8ListToPtr(data);
-    final param = createParams(
-        {'streamId': streamId, 'data': dataPtr.address, 'length': length});
+  // @override
+  // Future<void> sendStreamMessage(
+  //     {required int streamId,
+  //     required Uint8List data,
+  //     required int length}) async {
+  //   const apiType = 'RtcEngine_sendStreamMessage';
+  //   final dataPtr = uint8ListToPtr(data);
+  //   final param = createParams(
+  //       {'streamId': streamId, 'data': dataPtr.address, 'length': length});
 
-    final callApiResult = await irisMethodChannel.invokeMethod(
-        IrisMethodCall(apiType, jsonEncode(param), buffers: [data]));
-    if (callApiResult.irisReturnCode < 0) {
-      throw AgoraRtcException(code: callApiResult.irisReturnCode);
-    }
-    final rm = callApiResult.data;
+  //   final callApiResult = await irisMethodChannel.invokeMethod(
+  //       IrisMethodCall(apiType, jsonEncode(param), buffers: [data]));
+  //   if (callApiResult.irisReturnCode < 0) {
+  //     throw AgoraRtcException(code: callApiResult.irisReturnCode);
+  //   }
+  //   final rm = callApiResult.data;
 
-    freePointer(dataPtr);
-    final result = rm['result'];
+  //   freePointer(dataPtr);
+  //   final result = rm['result'];
 
-    if (result < 0) {
-      throw AgoraRtcException(code: result);
-    }
-  }
+  //   if (result < 0) {
+  //     throw AgoraRtcException(code: result);
+  //   }
+  // }
 
   @override
   Future<void> enableEncryption(
@@ -522,29 +522,29 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     return output;
   }
 
-  @override
-  Future<void> sendMetaData(
-      {required Metadata metadata, required VideoSourceType sourceType}) async {
-    assert(metadata.buffer != null);
-    const apiType = 'RtcEngine_sendMetaData';
-    final dataPtr = uint8ListToPtr(metadata.buffer!);
-    final metadataMap = metadata.toJson();
-    metadataMap['buffer'] = dataPtr.address;
-    final param = createParams(
-        {'metadata': metadataMap, 'source_type': sourceType.value()});
-    final callApiResult = await irisMethodChannel
-        .invokeMethod(IrisMethodCall(apiType, jsonEncode(param)));
-    if (callApiResult.irisReturnCode < 0) {
-      throw AgoraRtcException(code: callApiResult.irisReturnCode);
-    }
-    final rm = callApiResult.data;
-    freePointer(dataPtr);
-    final result = rm['result'];
+  // @override
+  // Future<void> sendMetaData(
+  //     {required Metadata metadata, required VideoSourceType sourceType}) async {
+  //   assert(metadata.buffer != null);
+  //   const apiType = 'RtcEngine_sendMetaData';
+  //   final dataPtr = uint8ListToPtr(metadata.buffer!);
+  //   final metadataMap = metadata.toJson();
+  //   metadataMap['buffer'] = dataPtr.address;
+  //   final param = createParams(
+  //       {'metadata': metadataMap, 'source_type': sourceType.value()});
+  //   final callApiResult = await irisMethodChannel
+  //       .invokeMethod(IrisMethodCall(apiType, jsonEncode(param)));
+  //   if (callApiResult.irisReturnCode < 0) {
+  //     throw AgoraRtcException(code: callApiResult.irisReturnCode);
+  //   }
+  //   final rm = callApiResult.data;
+  //   freePointer(dataPtr);
+  //   final result = rm['result'];
 
-    if (result < 0) {
-      throw AgoraRtcException(code: result);
-    }
-  }
+  //   if (result < 0) {
+  //     throw AgoraRtcException(code: result);
+  //   }
+  // }
 
   @override
   void registerMediaMetadataObserver(
