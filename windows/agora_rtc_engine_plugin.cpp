@@ -32,7 +32,8 @@ namespace agora_rtc_ng
     AgoraRtcEnginePlugin &operator=(const AgoraRtcEnginePlugin &) = delete;
 
   private:
-    std::unique_ptr<VideoViewController> video_view_controller_;
+    /// Commented to fix crash in room
+    // std::unique_ptr<VideoViewController> video_view_controller_;
     // Called when a method is called on this plugin's channel from Dart.
     void HandleMethodCall(
         const flutter::MethodCall<flutter::EncodableValue> &method_call,
@@ -61,9 +62,10 @@ namespace agora_rtc_ng
 
   AgoraRtcEnginePlugin::AgoraRtcEnginePlugin(flutter::PluginRegistrarWindows *registrar)
   {
-    video_view_controller_ = std::make_unique<VideoViewController>(
-        registrar->texture_registrar(),
-        registrar->messenger());
+    /// Commented to fix crash in room
+    // video_view_controller_ = std::make_unique<VideoViewController>(
+    //     registrar->texture_registrar(),
+    //     registrar->messenger());
   }
 
   AgoraRtcEnginePlugin::~AgoraRtcEnginePlugin() {}
